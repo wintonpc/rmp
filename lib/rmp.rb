@@ -11,7 +11,7 @@ class Rmp
     # end
 
     def start_server(_port)
-      Server.start(port)
+      Thread.new { Server.start(port) }
     end
   end
 end
