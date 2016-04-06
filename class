@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "class $1" | nc localhost $(cat rmp.port)
+

@@ -23,14 +23,13 @@ class Rmp
               tracing_allocations = false
             when 'echo'
               respond(req.sub(/^echo\s+/, ''))
-            when 'site'
+            when 'class'
               address = args[0]
               if address.nil?
                 respond('Usage: site <address>')
               else
                 obj = address_to_object(address)
-                site = "#{ObjectSpace.allocation_sourcefile(obj)}:#{ObjectSpace.allocation_sourceline(obj)}"
-                respond(site)
+                respond(obj.inspect)
               end
             when 'halt'
               exit(0)
@@ -50,6 +49,7 @@ class Rmp
         loop do
           sleep 1
           stuff << Object.new
+          stuff << 'hello'
         end
       end
     end
