@@ -9,7 +9,8 @@ class Rmp
           handle_request(req) do |cmd, args|
             case cmd
             when 'snap'
-              file_path = args.first
+              state[:dump_count] += 1
+              file_path = args.first || state[:dump_count].to_s
               dump_all(file_path)
               respond("wrote #{file_path}")
             when 'echo'
