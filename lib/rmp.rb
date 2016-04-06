@@ -15,4 +15,11 @@ class Rmp
       # Server.start(port)
     end
   end
+
+
+
+  def start_server(_port)
+    File.write('inject.log', 'start_server')
+    # Server.start(port)
+  end
 end
