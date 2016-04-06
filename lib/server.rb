@@ -2,20 +2,22 @@ require 'socket'
 
 class Server
   class << self
-    def start(port)
-      log "starting server"
+    def start(port, state, &block)
+      log 'starting server'
       ss = TCPServer.new(port)
       log "listening on #{port}"
       loop {
         Thread.start(ss.accept) { |s|
-          log "accepted client"
+          log 'accepted client'
           begin
-            while line = s.gets;  # Returns nil on EOF.
-              (s << "You wrote: #{line.inspect}\r\n").flush
+            while request = s.gets;  # Returns nil on EOF.
+              response, new_state = block.call(request, state)
+              state = new_state unless new_state == :__no_state_change__
+              write(s, response)
             end
           rescue
             bt = $!.backtrace * "\n  "
-            ($stderr << "error: #{$!.inspect}\n  #{bt}\n").flush
+            write(s, "error: #{$!.inspect}\n  #{bt}\n")
           ensure
             s.close
           end
@@ -23,8 +25,14 @@ class Server
       }
     end
 
+    def write(s, text)
+      s << text
+      s.flush
+    end
+
     def log(s)
       File.open('rmpserver.log', 'a') do |f|
+        puts s
         f.puts s
       end
     end
