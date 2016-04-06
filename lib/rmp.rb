@@ -4,23 +4,52 @@ require_relative './server'
 class Rmp
   class << self
     def start_server(port)
+      File.write('rmp.port', port.to_s)
       Thread.new do
-        Server.start(port, {dump_count: 0}) do |req, state|
+        dump_count = 0
+        tracing_allocations = false
+        Server.start(port, nil) do |req|
           handle_request(req) do |cmd, args|
             case cmd
             when 'snap'
-              state[:dump_count] += 1
-              file_path = args.first || state[:dump_count].to_s
+              ObjectSpace.trace_object_allocations_start unless tracing_allocations
+              tracing_allocations = true
+              dump_count += 1
+              file_path = args[0] || "#{dump_count.to_s}.snap"
               dump_all(file_path)
               respond("wrote #{file_path}")
+            when 'stop'
+              ObjectSpace.trace_object_allocations_stop
+              tracing_allocations = false
             when 'echo'
               respond(req.sub(/^echo\s+/, ''))
+            when 'site'
+              address = args[0]
+              if address.nil?
+                respond('Usage: site <address>')
+              else
+                obj = address_to_object(address)
+                site = "#{ObjectSpace.allocation_sourcefile(obj)}:#{ObjectSpace.allocation_sourceline(obj)}"
+                respond(site)
+              end
             when 'halt'
               exit(0)
             else
               respond("error unknown command \"#{cmd}\"")
             end
           end
+        end
+      end
+
+      start_creating_objects
+    end
+
+    def start_creating_objects
+      stuff = []
+      Thread.new do
+        loop do
+          sleep 1
+          stuff << Object.new
         end
       end
     end
@@ -33,6 +62,10 @@ class Rmp
     def handle_request(req)
       cmd, *args = req.split(/\s+/)
       yield(cmd, args)
+    end
+
+    def address_to_object(address)
+      ObjectSpace._id2ref(address.to_i(16) >> 1)
     end
 
     def dump_all(file_path)
