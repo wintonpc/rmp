@@ -11,7 +11,7 @@ class Rmp
     end
 
     def start_server(port)
-      Thread.new{File.write('inject.log', 'start_server');
+      File.write('inject.log', 'start_server')
       Server.start(port)
     end
   end
