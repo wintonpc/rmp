@@ -1,5 +1,5 @@
 require 'objspace'
-require_relative './server'
+# require_relative './server'
 
 class Rmp
   class << self
@@ -12,7 +12,7 @@ class Rmp
 
     def start_server(port)
       File.write('inject.log', 'start_server')
-      Server.start(port)
+      # Server.start(port)
     end
   end
 end
