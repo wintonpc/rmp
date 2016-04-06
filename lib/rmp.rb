@@ -1,4 +1,5 @@
 require 'objspace'
+require 'oj'
 require_relative './server'
 
 class Rmp
@@ -72,6 +73,17 @@ class Rmp
       GC.start
       File.open(file_path, 'w') do |f|
         ObjectSpace.dump_all(output: f)
+      end
+    end
+
+    def read_dump(file_path)
+      File.open(file_path, 'r') do |f|
+        m = {}
+        f.each_line do |line|
+          j = Oj.load(line)
+          m[j['address']] = j
+        end
+        m
       end
     end
   end

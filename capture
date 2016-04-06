@@ -11,4 +11,4 @@ read dummy
 
 ruby diff.rb a.snap b.snap | ruby worst.rb
 
-
+ruby rmap.rb b.snap > b.rmap
