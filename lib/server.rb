@@ -24,7 +24,7 @@ class Server
     end
 
     def log(s)
-      File.open('/tmp/server.log', 'a') do |f|
+      File.open('rmpserver.log', 'a') do |f|
         f.puts s
       end
     end
