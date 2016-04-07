@@ -24,7 +24,7 @@ class Rmp
             when 'class'
               address = args[0]
               if address.nil?
-                respond('Usage: site <address>')
+                respond('Usage: class <address>')
               else
                 obj = address_to_object(address)
                 respond(obj.inspect)
