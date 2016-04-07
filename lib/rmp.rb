@@ -5,23 +5,20 @@ require_relative './server'
 class Rmp
   class << self
     def start_server(port)
+      return if @server_started
+      @server_started = true
+      ObjectSpace.trace_object_allocations_start
       File.write('rmp.port', port.to_s)
       Thread.new do
         dump_count = 0
-        tracing_allocations = false
         Server.start(port, nil) do |req|
           handle_request(req) do |cmd, args|
             case cmd
             when 'snap'
-              ObjectSpace.trace_object_allocations_start unless tracing_allocations
-              tracing_allocations = true
               dump_count += 1
               file_path = args[0] || "#{dump_count.to_s}.snap"
               dump_all(file_path)
               respond("wrote #{file_path}")
-            when 'stop'
-              ObjectSpace.trace_object_allocations_stop
-              tracing_allocations = false
             when 'echo'
               respond(req.sub(/^echo\s+/, ''))
             when 'class'
