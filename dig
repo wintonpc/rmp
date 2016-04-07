@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ruby dig.rb $1 b.snap b.rmap
+
+

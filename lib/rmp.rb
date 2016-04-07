@@ -1,5 +1,6 @@
 require 'objspace'
 require 'oj'
+require 'pp'
 require_relative './server'
 
 class Rmp
@@ -20,6 +21,8 @@ class Rmp
               file_path = args[0] || "#{dump_count.to_s}.snap"
               dump_all(file_path)
               respond("wrote #{file_path}")
+            when 'stat'
+              respond(GC.stat.pretty_inspect)
             when 'echo'
               respond(req.sub(/^echo\s+/, ''))
             when 'class'
@@ -65,6 +68,8 @@ class Rmp
 
     def address_to_object(address)
       ObjectSpace._id2ref(address.to_i(16) >> 1)
+    rescue RangeError
+      nil
     end
 
     def dump_all(file_path)
@@ -92,6 +97,26 @@ class Rmp
       else
         [r['type'], r['class'], r['file'], r['line']]
       end
+    end
+
+    def format_value(v, limit)
+      s = v.to_s.gsub("\n", "\\n")
+      elide(s, limit)
+    end
+
+    # from https://docs.omniref.com/ruby/gems/rack-padlock/0.0.3/symbols/Rack::Padlock::StringUtil/elide
+    def elide(string, max)
+      string = string.to_s
+      max = max - 3 # account for elipses
+
+      length = string.length
+      return string unless length > max
+      return string if max <= 0
+      amount_to_preserve_on_the_left = (max/2.0).ceil
+      amount_to_preserve_on_the_right = max - amount_to_preserve_on_the_left
+      left = string[0..(amount_to_preserve_on_the_left-1)]
+      right = string[-amount_to_preserve_on_the_right..-1]
+      "#{left}...#{right}"
     end
   end
 end

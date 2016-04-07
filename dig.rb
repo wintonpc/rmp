@@ -33,7 +33,7 @@ class Dig
     dot_name = bucket_id + '.dot'
     File.open(dot_name, 'w') do |f|
       f.puts 'digraph G {'
-      f.puts 'node [fontname="Bitstream Vera Sans", fontsize=9, shape=rect]'
+      f.puts 'node [fontname="monospace", fontsize=9, shape=rect]'
       @seen.each do |(k, labels)|
         labels.array.each do |v|
           f.puts "\"#{v}\" -> \"#{k}\""
@@ -84,11 +84,13 @@ class Dig
     m
   end
 
+  VALUE_LIMIT = 45
+
   def format_bucket_key(k)
     case k[0]
     when 'STRING'
       _, value = k
-      value.inspect
+      Rmp.format_value(value, VALUE_LIMIT)
     else
       _, class_address, file, line = k
       if class_address.nil?

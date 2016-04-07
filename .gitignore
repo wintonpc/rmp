@@ -1,1 +1,9 @@
 .idea
+*.bucket
+*.dot
+*.png
+*.snap
+*.port
+*.log
+*.diff
+*.rmap

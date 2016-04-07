@@ -52,7 +52,7 @@ class Worst
   end
 
   def report_by(buckets, key, limit=12)
-    sorted = buckets.sort_by{|b| b[key]}.reverse
+    sorted = buckets.sort_by{|b| b[key] || 0}.reverse
     write_report_header
     sorted.take(limit).each do |b|
       bucket_id = SecureRandom.hex(4)
@@ -91,7 +91,7 @@ class Worst
   end
 
   def write_report_row(r)
-    puts left(r[:class], 16) + right(r[:count], 6) + right(human_bytes(r[:total_size]), 6) + right(human_bytes(r[:average_size]), 7) + left(r[:bucket_id], 9) + left(format_value(r[:value]), VALUE_LIMIT) + normal(r[:site])
+    puts left(r[:class], 16) + right(r[:count], 6) + right(human_bytes(r[:total_size]), 6) + right(human_bytes(r[:average_size]), 7) + left(r[:bucket_id], 9) + left(Rmp.format_value(r[:value], VALUE_LIMIT), VALUE_LIMIT) + normal(r[:site])
   end
 
   def left(x, width, div: true)
@@ -106,11 +106,6 @@ class Worst
     x
   end
 
-  def format_value(v)
-    s = v.to_s.gsub("\n", "\\n")
-    elide(s, VALUE_LIMIT)
-  end
-
   def human_bytes(n)
     m = 1024 * 1024
     k = 1024
@@ -121,21 +116,6 @@ class Worst
     else
       "#{n}B"
     end
-  end
-
-  # from https://docs.omniref.com/ruby/gems/rack-padlock/0.0.3/symbols/Rack::Padlock::StringUtil/elide
-  def elide(string, max)
-    string = string.to_s
-    max = max - 3 # account for elipses
-
-    length = string.length
-    return string unless length > max
-    return string if max <= 0
-    amount_to_preserve_on_the_left = (max/2.0).ceil
-    amount_to_preserve_on_the_right = max - amount_to_preserve_on_the_left
-    left = string[0..(amount_to_preserve_on_the_left-1)]
-    right = string[-amount_to_preserve_on_the_right..-1]
-    "#{left}...#{right}"
   end
 
 end
