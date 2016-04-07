@@ -2,12 +2,12 @@
 
 echo "Press any key to START capturing"
 read dummy
-./snap a.snap
+./snap rmp/a.snap
 
 
 echo "Press any key to STOP capturing"
 read dummy
-./snap b.snap
+./snap rmp/b.snap
 
 ruby diff.rb a.snap b.snap > ab.diff
 ruby worst.rb < ab.diff
