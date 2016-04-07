@@ -19,7 +19,7 @@ class Worst
           class_address: '',
           site: '',
           total_size: total_size,
-          average_size: total_size.to_f / rs.size,
+          average_size: (total_size.to_f / rs.size).round,
           count: rs.size,
           value: value,
           records: rs
@@ -39,7 +39,7 @@ class Worst
           class_address: class_address,
           site: "#{file}:#{line}",
           total_size: total_size,
-          average_size: total_size.to_f / rs.size,
+          average_size: (total_size.to_f / rs.size).round,
           count: rs.size,
           value: nil,
           records: rs

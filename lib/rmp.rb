@@ -9,6 +9,7 @@ class Rmp
       @server_started = true
       ObjectSpace.trace_object_allocations_start
       File.write('rmp.port', port.to_s)
+      File.write('rmp/rmp.port', port.to_s)
       Thread.new do
         dump_count = 0
         Server.start(port, nil) do |req|
