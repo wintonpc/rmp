@@ -78,20 +78,20 @@ class Worst
   end
 
   def write_total_size_highlight
-    puts left('', 16, div: false) + left('', 6, div: false) + ('⬇' * 'TOTAL BYTES'.size)
+    puts left('', 16, div: false) + left('', 6, div: false) + ('⬇' * 'TOTAL'.size)
   end
 
   def write_average_size_highlight
-    puts left('', 16, div: false) + left('', 6, div: false) + left('', 11, div: false) + ('⬇' * 'AVG BYTES'.size)
+    puts left('', 16, div: false) + left('', 6, div: false) + left('', 6, div: false) + ('⬇' * 'AVERAGE'.size)
   end
 
   def write_report_header
-    puts left('CLASS', 16) + left('COUNT', 6) + left('TOTAL BYTES', 11) + left('AVG BYTES', 11) + left('BUCKET ID', 9) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
-    puts left('-' * 16, 16) + left('-' * 6, 6) + left('-' * 11, 11) + left('-' * 11, 11) + left('-' * 9, 9) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
+    puts left('CLASS', 16) + left('COUNT', 6) + left('TOTAL', 6) + left('AVERAGE', 7) + left('BUCKET ID', 9) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
+    puts left('-' * 16, 16) + left('-' * 6, 6) + left('-' * 6, 6) + left('-' * 7, 7) + left('-' * 9, 9) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
   end
 
   def write_report_row(r)
-    puts left(r[:class], 16) + right(r[:count], 6) + right(r[:total_size], 11) + right(r[:average_size], 11) + left(r[:bucket_id], 9) + left(format_value(r[:value]), VALUE_LIMIT) + normal(r[:site])
+    puts left(r[:class], 16) + right(r[:count], 6) + right(human_bytes(r[:total_size]), 6) + right(human_bytes(r[:average_size]), 7) + left(r[:bucket_id], 9) + left(format_value(r[:value]), VALUE_LIMIT) + normal(r[:site])
   end
 
   def left(x, width, div: true)
@@ -109,6 +109,18 @@ class Worst
   def format_value(v)
     s = v.to_s.gsub("\n", "\\n")
     elide(s, VALUE_LIMIT)
+  end
+
+  def human_bytes(n)
+    m = 1024 * 1024
+    k = 1024
+    if n > m
+      "#{(n / m).round}M"
+    elsif n > k
+      "#{(n / k).round}K"
+    else
+      "#{n}B"
+    end
   end
 
   # from https://docs.omniref.com/ruby/gems/rack-padlock/0.0.3/symbols/Rack::Padlock::StringUtil/elide

@@ -4,12 +4,12 @@ require_relative './server'
 
 class Rmp
   class << self
-    def start_server(port)
+    def start_server(port, create_leak: false)
       return if @server_started
       @server_started = true
       ObjectSpace.trace_object_allocations_start
       File.write('rmp.port', port.to_s)
-      File.write('rmp/rmp.port', port.to_s)
+      File.write('rmp/rmp.port', port.to_s) if Dir.exists?('rmp')
       Thread.new do
         dump_count = 0
         Server.start(port, nil) do |req|
@@ -39,16 +39,16 @@ class Rmp
         end
       end
 
-      start_creating_objects
+      start_creating_objects if create_leak
     end
 
     def start_creating_objects
       stuff = []
       Thread.new do
         loop do
-          sleep 1
+          sleep 0.004
           stuff << Object.new
-          stuff << 'hello'
+          stuff << 'hello' * 100
         end
       end
     end

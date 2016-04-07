@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo "Press any key to START capturing"
+read dummy
+./snap a.snap
+
+
+echo "Press any key to STOP capturing"
+read dummy
+./snap b.snap
+
+ruby diff.rb a.snap b.snap > ab.diff
+ruby worst.rb < ab.diff
+ruby rmap.rb b.snap > b.rmap
