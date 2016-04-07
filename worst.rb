@@ -1,11 +1,13 @@
 require 'oj'
+require 'securerandom'
+require_relative './lib/rmp'
 
 Oj.default_options = {:mode => :compat }
 
 class Worst
   def go
     rs = $stdin.readlines.map{|x| Oj.load(x)}
-    gs = rs.group_by(&method(:key))
+    gs = rs.group_by{|r| Rmp.bucket_key(r)}
     bs = gs.map do |(k, rs)|
       case k[0]
       when 'STRING'
@@ -19,7 +21,8 @@ class Worst
           total_size: total_size,
           average_size: total_size.to_f / rs.size,
           count: rs.size,
-          value: value
+          value: value,
+          records: rs
         }
       else
         type, class_address, file, line = k
@@ -38,7 +41,8 @@ class Worst
           total_size: total_size,
           average_size: total_size.to_f / rs.size,
           count: rs.size,
-          value: nil
+          value: nil,
+          records: rs
         }
       end
     end
@@ -47,13 +51,24 @@ class Worst
     write_count_highlight; report_by(bs, :count)
   end
 
-  def report_by(rs, key, limit=12)
-    sorted = rs.sort_by{|b| b[key]}.reverse
+  def report_by(buckets, key, limit=12)
+    sorted = buckets.sort_by{|b| b[key]}.reverse
     write_report_header
     sorted.take(limit).each do |b|
+      bucket_id = SecureRandom.hex(4)
+      b[:bucket_id] = bucket_id
       write_report_row(b)
+      write_bucket_addresses(b)
     end
     puts
+  end
+
+  def write_bucket_addresses(b)
+    File.open("#{b[:bucket_id]}.bucket", 'w') do |f|
+      b[:records].each do |r|
+        f.puts r['address']
+      end
+    end
   end
 
   VALUE_LIMIT = 45
@@ -71,12 +86,12 @@ class Worst
   end
 
   def write_report_header
-    puts left('CLASS', 16) + left('COUNT', 6) + left('TOTAL BYTES', 11) + left('AVG BYTES', 11) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
-    puts left('-' * 16, 16) + left('-' * 6, 6) + left('-' * 11, 11) + left('-' * 11, 11) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
+    puts left('CLASS', 16) + left('COUNT', 6) + left('TOTAL BYTES', 11) + left('AVG BYTES', 11) + left('BUCKET ID', 9) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
+    puts left('-' * 16, 16) + left('-' * 6, 6) + left('-' * 11, 11) + left('-' * 11, 11) + left('-' * 9, 9) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
   end
 
   def write_report_row(r)
-    puts left(r[:class], 16) + right(r[:count], 6) + right(r[:total_size], 11) + right(r[:average_size], 11) + left(elide(r[:value], VALUE_LIMIT), VALUE_LIMIT) + normal(r[:site])
+    puts left(r[:class], 16) + right(r[:count], 6) + right(r[:total_size], 11) + right(r[:average_size], 11) + left(r[:bucket_id], 9) + left(format_value(r[:value]), VALUE_LIMIT) + normal(r[:site])
   end
 
   def left(x, width, div: true)
@@ -89,6 +104,11 @@ class Worst
 
   def normal(x)
     x
+  end
+
+  def format_value(v)
+    s = v.to_s.gsub("\n", "\\n")
+    elide(s, VALUE_LIMIT)
   end
 
   # from https://docs.omniref.com/ruby/gems/rack-padlock/0.0.3/symbols/Rack::Padlock::StringUtil/elide
@@ -106,14 +126,6 @@ class Worst
     "#{left}...#{right}"
   end
 
-  def key(r)
-    case r['type']
-    when 'STRING'
-      [r['type'], r['value']]
-    else
-      [r['type'], r['class'], r['file'], r['line']]
-    end
-  end
 end
 
 Worst.new.go

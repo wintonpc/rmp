@@ -86,5 +86,14 @@ class Rmp
         m
       end
     end
+
+    def bucket_key(r)
+      case r['type']
+      when 'STRING'
+        [r['type'], r['value']]
+      else
+        [r['type'], r['class'], r['file'], r['line']]
+      end
+    end
   end
 end
