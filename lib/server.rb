@@ -8,7 +8,7 @@ class Server
       log "listening on #{port}"
       loop {
         Thread.start(ss.accept) { |s|
-          log 'accepted client'
+          # log 'accepted client'
           begin
             while request = s.gets;  # Returns nil on EOF.
               response, new_state = block.call(request, state)
@@ -31,10 +31,10 @@ class Server
     end
 
     def log(s)
-      File.open('rmpserver.log', 'a') do |f|
+      # File.open('rmpserver.log', 'a') do |f|
         puts s
-        f.puts s
-      end
+        # f.puts s
+      # end
     end
   end
 end

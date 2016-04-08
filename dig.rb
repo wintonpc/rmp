@@ -1,21 +1,18 @@
-require 'oj'
-require_relative './lib/rmp'
-require 'securerandom'
-
+require_relative './lib/common'
 Addresses = Struct.new(:array)
 Labels = Struct.new(:array)
 
 class Dig
-  def initialize(dump_file_path, rmap_path)
-    @rs = Rmp.read_dump(dump_file_path)
+  def initialize(dump_file_path)
+    @rs = Common.read_dump(dump_file_path)
+    rmap_path = File.basename(dump_file_path, '.snap') + '.rmap'
+    create_rmap_if_necessary(rmap_path, dump_file_path, @rs)
     @rmap = read_rmap(rmap_path)
     @seen = {}
   end
 
-  def go(bucket_path)
-    unless bucket_path.end_with?('.bucket')
-      bucket_path += '.bucket'
-    end
+  def go(bucket_id)
+    bucket_path = File.expand_path("~/.rmp/buckets/#{bucket_id}.bucket")
     addrs = read_bucket(bucket_path)
     @seen.merge!(group_addrs(addrs))
     while @seen.values.any?{|v| v.is_a?(Addresses)}
@@ -48,9 +45,19 @@ class Dig
 
   private
 
+  def create_rmap_if_necessary(rmap_path, dump_file_path, rs)
+    if !File.exists?(rmap_path) || File.mtime(rmap_path) < File.mtime(dump_file_path)
+      puts "(Re)creating #{rmap_path} from #{dump_file_path}..."
+      File.open(rmap_path, 'w') do |f|
+        Common.rmap(rs, f)
+      end
+      puts 'done'
+    end
+  end
+
   def group_addrs(addrs)
     rs = @rs.values_at(*addrs)
-    bs = rs.group_by{|r| Rmp.bucket_key(r)}
+    bs = rs.group_by{|r| Common.bucket_key(r)}
     newly_seen = {}
     bs.each do |(k, rs)|
       label = format_bucket_key(k)
@@ -90,7 +97,7 @@ class Dig
     case k[0]
     when 'STRING'
       _, value = k
-      Rmp.format_value(value, VALUE_LIMIT)
+      Common.format_value(value, VALUE_LIMIT)
     else
       _, class_address, file, line = k
       if class_address.nil?
@@ -102,5 +109,5 @@ class Dig
   end
 end
 
-bucket_path, dump_file_path, rmap_path = ARGV
-Dig.new(dump_file_path, rmap_path).go(bucket_path)
+bucket_id, dump_file_path = ARGV
+Dig.new(dump_file_path).go(bucket_id)

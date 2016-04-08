@@ -1,12 +1,9 @@
-require 'oj'
-require_relative './lib/rmp'
-
-Oj.default_options = {:mode => :compat }
+require_relative './lib/common'
 
 class Diff
   def go(a, b)
-    as = Rmp.read_dump(a)
-    bs = Rmp.read_dump(b)
+    as = Common.read_dump(a)
+    bs = Common.read_dump(b)
     as.keys.each do |address|
       bs.delete(address)
     end

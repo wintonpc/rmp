@@ -1,13 +1,11 @@
-require 'oj'
 require 'securerandom'
-require_relative './lib/rmp'
-
-Oj.default_options = {:mode => :compat }
+require 'fileutils'
+require_relative './lib/common'
 
 class Worst
   def go
     rs = $stdin.readlines.map{|x| Oj.load(x)}
-    gs = rs.group_by{|r| Rmp.bucket_key(r)}
+    gs = rs.group_by{|r| Common.bucket_key(r)}
     bs = gs.map do |(k, rs)|
       case k[0]
       when 'STRING'
@@ -64,7 +62,8 @@ class Worst
   end
 
   def write_bucket_addresses(b)
-    File.open("#{b[:bucket_id]}.bucket", 'w') do |f|
+    FileUtils.mkdir_p(File.expand_path('~/.rmp/buckets'))
+    File.open(File.expand_path("~/.rmp/buckets/#{b[:bucket_id]}.bucket"), 'w') do |f|
       b[:records].each do |r|
         f.puts r['address']
       end
@@ -78,20 +77,26 @@ class Worst
   end
 
   def write_total_size_highlight
-    puts left('', 16, div: false) + left('', 6, div: false) + ('⬇' * 'TOTAL'.size)
+    puts left('', 16, div: false) + left('', 5, div: false) + ('⬇' * 'TOTAL'.size)
   end
 
   def write_average_size_highlight
-    puts left('', 16, div: false) + left('', 6, div: false) + left('', 6, div: false) + ('⬇' * 'AVERAGE'.size)
+    puts left('', 16, div: false) + left('', 5, div: false) + left('', 5, div: false) + ('⬇' * 'AVERAGE'.size)
   end
 
   def write_report_header
-    puts left('CLASS', 16) + left('COUNT', 6) + left('TOTAL', 6) + left('AVERAGE', 7) + left('BUCKET ID', 9) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
-    puts left('-' * 16, 16) + left('-' * 6, 6) + left('-' * 6, 6) + left('-' * 7, 7) + left('-' * 9, 9) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
+    puts left('CLASS', 16) + left('COUNT', 5) + left('TOTAL', 5) + left('AVERAGE', 7) + left('BUCKET ID', 9) + left('VALUE', VALUE_LIMIT) + normal('LOCATION')
+    puts left('-' * 16, 16) + left('-' * 5, 5) + left('-' * 5, 5) + left('-' * 7, 7) + left('-' * 9, 9) + left('-' * VALUE_LIMIT, VALUE_LIMIT) + normal('-' * 'LOCATION'.size)
   end
 
   def write_report_row(r)
-    puts left(r[:class], 16) + right(r[:count], 6) + right(human_bytes(r[:total_size]), 6) + right(human_bytes(r[:average_size]), 7) + left(r[:bucket_id], 9) + left(Rmp.format_value(r[:value], VALUE_LIMIT), VALUE_LIMIT) + normal(r[:site])
+    puts left(r[:class], 16) +
+           right(human_count(r[:count], kilo: 1000), 5) +
+           right(human_count(r[:total_size], kilo: 1024), 5) +
+           right(human_count(r[:average_size]), 7) +
+           left(r[:bucket_id], 9) +
+           left(Common.format_value(r[:value], VALUE_LIMIT), VALUE_LIMIT) +
+           normal(r[:site])
   end
 
   def left(x, width, div: true)
@@ -106,15 +111,18 @@ class Worst
     x
   end
 
-  def human_bytes(n)
-    m = 1024 * 1024
-    k = 1024
-    if n > m
+  def human_count(n, kilo: 1024)
+    k = kilo
+    m = k * k
+    g = k * k * k
+    if n > g
+      "#{(n / g).round}G"
+    elsif n > m
       "#{(n / m).round}M"
     elsif n > k
       "#{(n / k).round}K"
     else
-      "#{n}B"
+      "#{n}"
     end
   end
 

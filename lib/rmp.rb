@@ -1,6 +1,7 @@
 require 'objspace'
 require 'oj'
 require 'pp'
+require 'fileutils'
 require_relative './server'
 
 class Rmp
@@ -9,8 +10,8 @@ class Rmp
       return if @server_started
       @server_started = true
       ObjectSpace.trace_object_allocations_start
-      File.write('rmp.port', port.to_s)
-      File.write('rmp/rmp.port', port.to_s) if Dir.exists?('rmp')
+      FileUtils.mkdir_p(File.expand_path('~/.rmp'))
+      File.write(File.expand_path('~/.rmp/rmp.port'), port.to_s)
       Thread.new do
         dump_count = 0
         Server.start(port, nil) do |req|
@@ -49,7 +50,7 @@ class Rmp
       stuff = []
       Thread.new do
         loop do
-          sleep 0.004
+          sleep 0.01
           stuff << Object.new
           stuff << 'hello' * 100
         end
@@ -77,46 +78,6 @@ class Rmp
       File.open(file_path, 'w') do |f|
         ObjectSpace.dump_all(output: f)
       end
-    end
-
-    def read_dump(file_path)
-      File.open(file_path, 'r') do |f|
-        m = {}
-        f.each_line do |line|
-          j = Oj.load(line)
-          m[j['address']] = j
-        end
-        m
-      end
-    end
-
-    def bucket_key(r)
-      case r['type']
-      when 'STRING'
-        [r['type'], r['value']]
-      else
-        [r['type'], r['class'], r['file'], r['line']]
-      end
-    end
-
-    def format_value(v, limit)
-      s = v.to_s.gsub("\n", "\\n")
-      elide(s, limit)
-    end
-
-    # from https://docs.omniref.com/ruby/gems/rack-padlock/0.0.3/symbols/Rack::Padlock::StringUtil/elide
-    def elide(string, max)
-      string = string.to_s
-      max = max - 3 # account for elipses
-
-      length = string.length
-      return string unless length > max
-      return string if max <= 0
-      amount_to_preserve_on_the_left = (max/2.0).ceil
-      amount_to_preserve_on_the_right = max - amount_to_preserve_on_the_left
-      left = string[0..(amount_to_preserve_on_the_left-1)]
-      right = string[-amount_to_preserve_on_the_right..-1]
-      "#{left}...#{right}"
     end
   end
 end
