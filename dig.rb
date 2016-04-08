@@ -40,7 +40,11 @@ class Dig
     end
     puts "Wrote #{dot_name}"
     png_name = "#{bucket_id}.png"
-    system("dot -Tpng -o #{png_name} #{dot_name} && echo Wrote #{png_name} && xdg-open #{png_name} &")
+    dot_cmd = "dot -Tpng -o #{png_name} #{dot_name}"
+    system(dot_cmd) or fail "dot failed. run manually: #{dot_cmd}"
+    puts "Wrote #{png_name}"
+    puts "Trying to open #{png_name} with xdg-open..."
+    system("xdg-open #{png_name} && echo success.") or puts 'failed.'
   end
 
   private
