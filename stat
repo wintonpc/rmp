@@ -1,4 +1,3 @@
-#!/bin/sh
-
-echo "stat" | nc localhost $(cat rmp.port)
+#!/bin/bash
+echo "stat" | nc localhost $(cat ~/.rmp/rmp.port)
 

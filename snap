@@ -1,3 +1,2 @@
-#!/bin/sh
-
+#!/bin/bash
 echo "snap $(readlink -f "$1")" | nc localhost $(cat ~/.rmp/rmp.port)

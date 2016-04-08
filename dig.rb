@@ -107,7 +107,7 @@ class Dig
       if class_address.nil?
         'unknown'
       else
-        "#{`./class #{class_address}`.strip}@#{file}:#{line}"
+        "#{`#{File.dirname(__FILE__)}/class #{class_address}`.strip}@#{file}:#{line}"
       end
     end
   end

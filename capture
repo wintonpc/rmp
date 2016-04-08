@@ -1,17 +1,21 @@
-#!/bin/sh
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo DIR is $DIR
 
 echo "Press any key to START capturing"
 read dummy
 echo "Capturing..."
-./snap a.snap
+"$DIR/snap" a.snap
 
 
 echo "Press any key to STOP capturing"
 read dummy
 echo "Capturing..."
-./snap b.snap
+"$DIR/snap" b.snap
 
 echo "Diffing..."
-ruby diff.rb a.snap b.snap > ab.diff
+ruby "$DIR/diff.rb" a.snap b.snap > ab.diff
 echo "Analyzing..."
-ruby worst.rb < ab.diff
+ruby "$DIR/worst.rb" < ab.diff

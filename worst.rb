@@ -26,7 +26,7 @@ class Worst
         type, class_address, file, line = k
 
         if class_address =~ /^0x[a-f0-9]+$/
-          class_name = `./class #{class_address}`.strip
+          class_name = `#{File.dirname(__FILE__)}/class #{class_address}`.strip
         end
 
         total_size = rs.map{|r| r['memsize']}.inject(:+)
