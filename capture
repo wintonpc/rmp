@@ -2,17 +2,15 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo DIR is $DIR
-
 echo "Press any key to START capturing"
 read dummy
-echo "Capturing..."
+echo "Taking snapshot..."
 "$DIR/snap" a.snap
 
 
 echo "Press any key to STOP capturing"
 read dummy
-echo "Capturing..."
+echo "Taking snapshot..."
 "$DIR/snap" b.snap
 
 echo "Diffing..."
