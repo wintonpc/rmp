@@ -24,6 +24,10 @@ class Common
       end
     end
 
+    def bucket_path(bucket_id)
+      File.expand_path("~/.rmp/buckets/#{bucket_id}.bucket")
+    end
+
     def format_value(v, limit)
       s = v.to_s.gsub("\n", "\\n")
       elide(s, limit)

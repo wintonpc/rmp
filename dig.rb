@@ -12,7 +12,7 @@ class Dig
   end
 
   def go(bucket_id)
-    bucket_path = File.expand_path("~/.rmp/buckets/#{bucket_id}.bucket")
+    bucket_path = File.expand_path(Common.bucket_path(bucket_id))
     addrs = read_bucket(bucket_path)
     @seen.merge!(group_addrs(addrs))
     while @seen.values.any?{|v| v.is_a?(Addresses)}
@@ -60,7 +60,7 @@ class Dig
   end
 
   def group_addrs(addrs)
-    rs = @rs.values_at(*addrs)
+    rs = @rs.values_at(*addrs).reject{|x| x.nil?}
     bs = rs.group_by{|r| Common.bucket_key(r)}
     newly_seen = {}
     bs.each do |(k, rs)|

@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "snap_nogc $(readlink -f "$1")" | nc localhost $(cat ~/.rmp/rmp.port)

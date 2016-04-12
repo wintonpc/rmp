@@ -63,7 +63,7 @@ class Worst
 
   def write_bucket_addresses(b)
     FileUtils.mkdir_p(File.expand_path('~/.rmp/buckets'))
-    File.open(File.expand_path("~/.rmp/buckets/#{b[:bucket_id]}.bucket"), 'w') do |f|
+    File.open(File.expand_path(Common.bucket_path(b[:bucket_id])), 'w') do |f|
       b[:records].each do |r|
         f.puts r['address']
       end

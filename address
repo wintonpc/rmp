@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "address $1" | nc localhost $(cat ~/.rmp/rmp.port)
+
